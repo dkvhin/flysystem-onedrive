@@ -307,14 +307,7 @@ class OneDrive
 			'PUT',
 			$upload_url,
 			$headers,
-			new MultipartStream(
-				[
-					[
-						'name'		=> 'file',
-						'contents'  => $chunk,
-					],
-				]
-			)
+			$chunk
 		);
 
 		$response = $http->send($request);
