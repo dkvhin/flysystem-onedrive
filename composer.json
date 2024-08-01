@@ -1,31 +1,37 @@
 {
-  "name": "as247/flysystem-onedrive",
+  "name": "dkvhin/flysystem-onedrive",
   "description": "One Drive Adapter for Flysystem",
   "keywords": ["php", "storage", "drive","microsoft","one-drive"],
-  "homepage": "https://github.com/as247",
+  "homepage": "https://github.com/dkvhin",
   "license": "MIT",
   "authors": [
     {
       "name": "As247",
       "email": "as247@vui360.com",
       "homepage": "http://as247.vui360.com"
+    },
+    {
+      "name": "dkvhin",
+      "email": "dkvhin@outlook.com",
+      "homepage": "https://github.com/dkvhin"
     }
   ],
   "require": {
     "php": ">=7.1",
     "ext-json": "*",
-    "as247/cloud-storages": "^1.2.6",
     "league/flysystem": "^3.23",
-    "microsoft/microsoft-graph": "^1.110"
+    "microsoft/microsoft-graph": "^1.110",
+    "guzzlehttp/guzzle": "^7.9",
+    "illuminate/support": "^11.19"
   },
   "autoload": {
     "psr-4": {
-      "As247\\Flysystem\\OneDrive\\": "src/"
+      "Dkvhin\\Flysystem\\OneDrive\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "As247\\Flysystem\\OneDrive\\Tests\\": "tests/"
+      "Dkvhin\\Flysystem\\OneDrive\\Tests\\": "tests/"
     }
   },
   "minimum-stability": "dev",

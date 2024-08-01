@@ -6,11 +6,11 @@
  * Time: 8:44 AM
  */
 
-namespace As247\Flysystem\OneDrive;
+namespace Dkvhin\Flysystem\OneDrive;
 
 
-use As247\CloudStorages\Storage\OneDrive;
-use As247\CloudStorages\Support\StorageToAdapter;
+use Dkvhin\Flysystem\OneDrive\Storage\OneDrive;
+use Dkvhin\Flysystem\OneDrive\Support\StorageToAdapter;
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\PathPrefixer;
 use League\Flysystem\UrlGeneration\TemporaryUrlGenerator;

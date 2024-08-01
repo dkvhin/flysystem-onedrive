@@ -1,11 +1,11 @@
 <?php
 
 
-namespace As247\Flysystem\OneDrive\Tests;
+namespace Dkvhin\Flysystem\OneDrive\Tests;
 
 
-use As247\CloudStorages\Support\OneDriveOauth;
-use As247\Flysystem\OneDrive\OneDriveAdapter;
+use Dkvhin\Flysystem\OneDrive\OneDriveOauth;
+use Dkvhin\Flysystem\OneDrive\OneDriveAdapter;
 use League\Flysystem\AdapterTestUtilities\FilesystemAdapterTestCase;
 use League\Flysystem\FilesystemAdapter;
 use Microsoft\Graph\Graph;
