@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: alt
@@ -9,24 +10,30 @@
 namespace Dkvhin\Flysystem\OneDrive;
 
 
-use Dkvhin\Flysystem\OneDrive\Storage\OneDrive;
-use Dkvhin\Flysystem\OneDrive\Support\StorageToAdapter;
-use League\Flysystem\FilesystemAdapter;
-use League\Flysystem\PathPrefixer;
-use League\Flysystem\UrlGeneration\TemporaryUrlGenerator;
 use Microsoft\Graph\Graph;
+use League\Flysystem\PathPrefixer;
+use League\Flysystem\Adapter\AbstractAdapter;
+use Dkvhin\Flysystem\OneDrive\Storage\OneDrive;
+use Dkvhin\Flysystem\OneDrive\Support\GetTemporaryUrl;
+use Dkvhin\Flysystem\OneDrive\Support\StorageToAdapter;
+use Dkvhin\Flysystem\OneDrive\Support\StorageToAdapterV1;
 
-class OneDriveAdapter implements FilesystemAdapter, TemporaryUrlGenerator
+class OneDriveAdapter implements AbstractAdapter
 {
-	use StorageToAdapter;
-	protected $storage;
-    protected $prefixer;
+    use StorageToAdapterV1;
+    use GetTemporaryUrl;
+    protected $storage;
     public function __construct(Graph $graph, $options = '')
     {
-        if(!is_array($options)){
-            $options=['root'=>$options];
+        if (!is_array($options)) {
+            $options = ['root' => $options];
         }
-    	$this->storage=new OneDrive($graph,$options);
-        $this->prefixer = new PathPrefixer($options['root']??'', DIRECTORY_SEPARATOR);
+        $this->storage = new OneDrive($graph, $options);
+        $this->setPathPrefix($options['root'] ?? '');
+        $this->throwException = $options['debug'] ?? '';
+    }
+    public function getTemporaryUrl($path, $expiration = null, $options = [])
+    {
+        return $this->getMetadata($path)['@downloadUrl'] ?? '';
     }
 }

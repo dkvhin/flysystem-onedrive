@@ -19,10 +19,10 @@
   "require": {
     "php": ">=7.1",
     "ext-json": "*",
-    "league/flysystem": "^3.0",
+    "league/flysystem": "^1.0",
     "microsoft/microsoft-graph": "^1.110",
-    "guzzlehttp/guzzle": "^6.0|^7.0",
-    "illuminate/support": "^5.8.15|^6.0|^7.0|^8.0|^9.0|^10.0|^11.0"
+    "guzzlehttp/guzzle": "^6.0",
+    "illuminate/support": "^5.8.0"
   },
   "autoload": {
     "psr-4": {
