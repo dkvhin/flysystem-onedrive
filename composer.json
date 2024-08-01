@@ -21,7 +21,7 @@
     "ext-json": "*",
     "league/flysystem": "^3.23",
     "microsoft/microsoft-graph": "^1.110",
-    "guzzlehttp/guzzle": "^7.9",
+    "guzzlehttp/guzzle": "^7.0",
     "illuminate/support": "^10.0|^11.19"
   },
   "autoload": {
