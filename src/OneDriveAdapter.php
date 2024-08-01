@@ -11,14 +11,12 @@ namespace Dkvhin\Flysystem\OneDrive;
 
 
 use Microsoft\Graph\Graph;
-use League\Flysystem\PathPrefixer;
 use League\Flysystem\Adapter\AbstractAdapter;
 use Dkvhin\Flysystem\OneDrive\Storage\OneDrive;
 use Dkvhin\Flysystem\OneDrive\Support\GetTemporaryUrl;
-use Dkvhin\Flysystem\OneDrive\Support\StorageToAdapter;
 use Dkvhin\Flysystem\OneDrive\Support\StorageToAdapterV1;
 
-class OneDriveAdapter implements AbstractAdapter
+class OneDriveAdapter extends AbstractAdapter
 {
     use StorageToAdapterV1;
     use GetTemporaryUrl;
