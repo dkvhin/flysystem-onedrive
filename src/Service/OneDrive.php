@@ -6,9 +6,9 @@ namespace Dkvhin\Flysystem\OneDrive\Service;
 use Exception;
 use Generator;
 use ArrayObject;
+use GuzzleHttp\Client;
 use Microsoft\Graph\Graph;
 use InvalidArgumentException;
-use Illuminate\Support\Facades\Http;
 use Microsoft\Graph\Model\DriveItem;
 use Microsoft\Graph\Http\GraphRequest;
 use Microsoft\Graph\Http\GraphResponse;
@@ -286,14 +286,14 @@ class OneDrive
 		$fragSize = $this->options['chunk_size'];
 		$offset = 0;
 
-		$guzzle = new Http();
+		$guzzle = new Client();
 		while ($chunk = fread($contents, $fragSize)) {
 			$this->writeChunk($guzzle, $upload_url, $meta['size'], $chunk, $offset);
 			$offset += $fragSize;
 		}
 	}
 
-	private function writeChunk(Http $http, string $upload_url, int $file_size, string $chunk, int $first_byte, int $retries = 0): void
+	private function writeChunk(Client $http, string $upload_url, int $file_size, string $chunk, int $first_byte, int $retries = 0): void
 	{
 		$last_byte_pos = $first_byte + strlen($chunk) - 1;
 		$headers = [
