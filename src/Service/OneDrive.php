@@ -310,14 +310,15 @@ class OneDrive
 			new MultipartStream(
 				[
 					[
-						'contents' => $chunk,
+						'name'		=> 'file',
+						'contents'  => $chunk,
 					],
 				]
 			)
 		);
 
 		$response = $http->send($request);
-		
+
 		// $response = $http->put($upload_url, $headers)
 		// 	->withBody($chunk, 'application/octet-stream')
 		// 	->timeout($this->options['request_timeout'])
