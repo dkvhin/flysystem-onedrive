@@ -8,7 +8,9 @@ use Generator;
 use ArrayObject;
 use GuzzleHttp\Client;
 use Microsoft\Graph\Graph;
+use GuzzleHttp\Psr7\Request;
 use InvalidArgumentException;
+use GuzzleHttp\Psr7\MultipartStream;
 use Microsoft\Graph\Model\DriveItem;
 use Microsoft\Graph\Http\GraphRequest;
 use Microsoft\Graph\Http\GraphResponse;
@@ -35,9 +37,9 @@ class OneDrive
 	public function __construct(Graph $graph, $options = [])
 	{
 		$default_options = [
-            'request_timeout' => 90,
-            'chunk_size' => 1024 * 1024 * 10,
-        ];
+			'request_timeout' => 90,
+			'chunk_size' => 1024 * 1024 * 10,
+		];
 
 		$this->options = array_merge($default_options, $options);
 		$root = $options['root'] ?? '';
@@ -301,21 +303,36 @@ class OneDrive
 			'Content-Length' => strlen($chunk),
 		];
 
-		$response = $http::withHeaders($headers)
-			->withBody($chunk, 'application/octet-stream')
-			->timeout($this->options['request_timeout'])
-			->put($upload_url);
+		$request = new Request(
+			'PUT',
+			$upload_url,
+			$headers,
+			new MultipartStream(
+				[
+					[
+						'contents' => $chunk,
+					],
+				]
+			)
+		);
 
-		if ($response->status() === 404) {
+		$response = $http->send($request);
+		
+		// $response = $http->put($upload_url, $headers)
+		// 	->withBody($chunk, 'application/octet-stream')
+		// 	->timeout($this->options['request_timeout'])
+		// 	->put($upload_url);
+
+		if ($response->getStatusCode() === 404) {
 			throw new Exception('Upload URL has expired, please create new upload session');
 		}
 
-		if ($response->status() === 429) {
+		if ($response->getStatusCode() === 429) {
 			sleep($response->header('Retry-After')[0] ?? 1);
 			$this->writeChunk($http, $upload_url, $file_size, $chunk, $first_byte, $retries + 1);
 		}
 
-		if ($response->status() >= 500) {
+		if ($response->getStatusCode() >= 500) {
 			if ($retries > 9) {
 				throw new Exception('Upload failed after 10 attempts.');
 			}
@@ -324,16 +341,16 @@ class OneDrive
 		}
 
 		if (($file_size - 1) == $last_byte_pos) {
-			if ($response->status() === 409) {
+			if ($response->getStatusCode() === 409) {
 				throw new Exception('File name conflict. A file with the same name already exists at target destination.');
 			}
 
-			if (in_array($response->status(), [200, 201])) {
+			if (in_array($response->getStatusCode(), [200, 201])) {
 				$response = new GraphResponse(
 					$this->graph->createRequest('', ''),
-					$response->body(),
-					$response->status(),
-					$response->headers()
+					$response->getBody(),
+					$response->getStatusCode(),
+					$response->getHeaders()
 				);
 
 				$response->getResponseAsObject(DriveItem::class);
