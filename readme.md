@@ -6,7 +6,7 @@
 ## Installation
 
 ```bash
-composer require as247/flysystem-onedrive
+composer require dkvhin/flysystem-onedrive
 ```
 
 ## Usage
