@@ -298,7 +298,7 @@ class OneDrive
 					$offset += $fragSize;
 					$success = true;
 				} catch (Exception $ex) {
-					Log::error($ex);
+					$this->logger->log($ex);
 				}
 			} while (!$success);
 		}
@@ -362,12 +362,12 @@ class OneDrive
 			}
 
 			throw new Exception(
-				'Unknown error occurred while uploading last part of file. HTTP response code is ' . $response->status()
+				'Unknown error occurred while uploading last part of file. HTTP response code is ' . $response->getStatusCode()
 			);
 		}
 
-		if ($response->status() !== 202) {
-			throw new Exception('Unknown error occurred while trying to upload file chunk. HTTP status code is ' . $response->status());
+		if ($response->getStatusCode() !== 202) {
+			throw new Exception('Unknown error occurred while trying to upload file chunk. HTTP status code is ' . $response->getStatusCode());
 		}
 	}
 
