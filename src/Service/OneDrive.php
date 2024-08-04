@@ -20,6 +20,7 @@ use Microsoft\Graph\Exception\GraphException;
 use Dkvhin\Flysystem\OneDrive\Support\StorageAttributes;
 use Dkvhin\Flysystem\OneDrive\Exception\StorageException;
 use Dkvhin\Flysystem\OneDrive\Contracts\Storage\StorageContract;
+use Illuminate\Support\Facades\Log;
 
 class OneDrive
 {
@@ -38,7 +39,7 @@ class OneDrive
 	{
 		$default_options = [
 			'request_timeout' => 90,
-			'chunk_size' => 320 * 1024,
+			'chunk_size' => 320 * 1024 * 10,
 		];
 
 		$this->options = array_merge($default_options, $options);
@@ -290,8 +291,12 @@ class OneDrive
 
 		$guzzle = new Client();
 		while ($chunk = fread($contents, $fragSize)) {
-			$this->writeChunk($guzzle, $upload_url, $meta['size'], $chunk, $offset);
-			$offset += $fragSize;
+			try {
+				$this->writeChunk($guzzle, $upload_url, $meta['size'], $chunk, $offset);
+				$offset += $fragSize;
+			} catch (Exception $ex) {
+				Log::error($ex);
+			}
 		}
 	}
 
