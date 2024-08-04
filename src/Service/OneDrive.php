@@ -37,7 +37,7 @@ class OneDrive
 	{
 		$default_options = [
             'request_timeout' => 90,
-            'chunk_size' => 320 * 1024,
+            'chunk_size' => 320 * 1024 * 10,
         ];
 
 		$this->options = array_merge($default_options, $options);
