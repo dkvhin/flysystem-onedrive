@@ -291,12 +291,16 @@ class OneDrive
 
 		$guzzle = new Client();
 		while ($chunk = fread($contents, $fragSize)) {
-			try {
-				$this->writeChunk($guzzle, $upload_url, $meta['size'], $chunk, $offset);
-				$offset += $fragSize;
-			} catch (Exception $ex) {
-				Log::error($ex);
-			}
+			$success = false;
+			do {
+				try {
+					$this->writeChunk($guzzle, $upload_url, $meta['size'], $chunk, $offset);
+					$offset += $fragSize;
+					$success = true;
+				} catch (Exception $ex) {
+					Log::error($ex);
+				}
+			} while (!$success);
 		}
 	}
 
