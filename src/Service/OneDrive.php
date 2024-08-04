@@ -16,6 +16,7 @@ use Microsoft\Graph\Http\GraphResponse;
 use Microsoft\Graph\Model\UploadSession;
 use Dkvhin\Flysystem\OneDrive\Support\Path;
 use Microsoft\Graph\Exception\GraphException;
+use Dkvhin\Flysystem\OneDrive\Support\OneDriveOauth;
 use Dkvhin\Flysystem\OneDrive\Support\StorageAttributes;
 use Dkvhin\Flysystem\OneDrive\Exception\StorageException;
 use Dkvhin\Flysystem\OneDrive\Contracts\Storage\StorageContract;
@@ -23,6 +24,7 @@ use Dkvhin\Flysystem\OneDrive\Contracts\Storage\StorageContract;
 class OneDrive
 {
 	protected $graph;
+	protected OneDriveOauth $auth;
 	const ROOT = '/me/drive/root';
 	protected $publishPermission = [
 		'role' => 'read',
@@ -33,7 +35,7 @@ class OneDrive
 	//Add prefix / when original root has /
 	protected $rootPrefix = '';
 	use HasLogger;
-	public function __construct(Graph $graph, $options = [])
+	public function __construct(Graph $graph, $options = [], OneDriveOauth $auth = null)
 	{
 		$default_options = [
 			'request_timeout' => 90,
@@ -51,6 +53,7 @@ class OneDrive
 		}
 		$this->setupLogger($options);
 		$this->graph = $graph;
+		$this->auth = $auth;
 	}
 
 	function normalizeMetadata(array $response, string $path): array
@@ -269,12 +272,12 @@ class OneDrive
 	 */
 	public function upload($path, $contents)
 	{
-		$endpoint = $this->getEndpoint($path, 'createUploadSession');
-		try {
-			$stream = StreamWrapper::wrap($contents);
-		} catch (InvalidArgumentException $e) {
-			throw new StorageException("Invalid contents. " . $e->getMessage());
+		// get a new access token
+		if ($this->auth) {
+			$this->graph->setAccessToken($this->auth->getAccessToken());
 		}
+
+		$endpoint = $this->getEndpoint($path, 'createUploadSession');
 
 		$this->createDirectory(dirname($path));
 
@@ -291,12 +294,20 @@ class OneDrive
 		while ($chunk = fread($contents, $fragSize)) {
 
 			$success = false;
+			$failureCount = 0;
+
 			do {
+
+				if ($failureCount > 2) {
+					throw new Exception('Unable to upload. Multiple failure.');
+				}
+
 				try {
 					$this->writeChunk($guzzle, $upload_url, $meta['size'], $chunk, $offset);
 					$offset += $fragSize;
 					$success = true;
 				} catch (Exception $ex) {
+					$failureCount++;
 					Log::error($ex);
 				}
 			} while (!$success);
@@ -315,6 +326,14 @@ class OneDrive
 			->withBody($chunk, 'application/octet-stream')
 			->timeout($this->options['request_timeout'])
 			->put($upload_url);
+
+		if ($response->status() === 401) {
+			// try to authenticate first then retry
+			if ($this->auth) {
+				$this->graph->setAccessToken($this->auth->getAccessToken());
+			}
+			throw new Exception('Upload Token has expired, Retrying');
+		}
 
 		if ($response->status() === 404) {
 			throw new Exception('Upload URL has expired, please create new upload session');
