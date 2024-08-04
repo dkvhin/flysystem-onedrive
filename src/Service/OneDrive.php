@@ -36,9 +36,9 @@ class OneDrive
 	public function __construct(Graph $graph, $options = [])
 	{
 		$default_options = [
-            'request_timeout' => 90,
-            'chunk_size' => 320 * 1024 * 10,
-        ];
+			'request_timeout' => 90,
+			'chunk_size' => 320 * 1024 * 10,
+		];
 
 		$this->options = array_merge($default_options, $options);
 		$root = $options['root'] ?? '';
@@ -289,12 +289,14 @@ class OneDrive
 
 		$guzzle = new Http();
 		while ($chunk = fread($contents, $fragSize)) {
-			try
-			{
+			try {
 				$this->writeChunk($guzzle, $upload_url, $meta['size'], $chunk, $offset);
 				$offset += $fragSize;
-			}
-			catch(Exception $ex) {
+			} catch (Exception $ex) {
+
+				// retry
+				$this->writeChunk($guzzle, $upload_url, $meta['size'], $chunk, $offset);
+				$offset += $fragSize;
 				Log::error($ex);
 			}
 		}
