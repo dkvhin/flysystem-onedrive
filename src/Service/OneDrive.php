@@ -8,6 +8,7 @@ use Generator;
 use ArrayObject;
 use Microsoft\Graph\Graph;
 use InvalidArgumentException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Microsoft\Graph\Model\DriveItem;
 use Microsoft\Graph\Http\GraphRequest;
@@ -288,8 +289,14 @@ class OneDrive
 
 		$guzzle = new Http();
 		while ($chunk = fread($contents, $fragSize)) {
-			$this->writeChunk($guzzle, $upload_url, $meta['size'], $chunk, $offset);
-			$offset += $fragSize;
+			try
+			{
+				$this->writeChunk($guzzle, $upload_url, $meta['size'], $chunk, $offset);
+				$offset += $fragSize;
+			}
+			catch(Exception $ex) {
+				Log::error($ex);
+			}
 		}
 	}
 
