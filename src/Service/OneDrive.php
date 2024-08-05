@@ -24,7 +24,7 @@ use Dkvhin\Flysystem\OneDrive\Contracts\Storage\StorageContract;
 class OneDrive
 {
 	protected $graph;
-	protected OneDriveOauth $auth;
+	protected ?OneDriveOauth $auth;
 	const ROOT = '/me/drive/root';
 	protected $publishPermission = [
 		'role' => 'read',
@@ -35,7 +35,7 @@ class OneDrive
 	//Add prefix / when original root has /
 	protected $rootPrefix = '';
 	use HasLogger;
-	public function __construct(Graph $graph, $options = [], OneDriveOauth $auth = null)
+	public function __construct(Graph $graph, $options = [], ?OneDriveOauth $auth = null)
 	{
 		$default_options = [
 			'request_timeout' => 90,

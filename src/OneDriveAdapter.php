@@ -23,7 +23,7 @@ class OneDriveAdapter implements FilesystemAdapter, TemporaryUrlGenerator
     use StorageToAdapter;
     protected $storage;
     protected $prefixer;
-    public function __construct(Graph $graph, $options = '', OneDriveOauth $auth = null)
+    public function __construct(Graph $graph, $options = '', ?OneDriveOauth $auth = null)
     {
         if (!is_array($options)) {
             $options = ['root' => $options];

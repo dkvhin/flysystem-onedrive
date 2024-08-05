@@ -21,7 +21,7 @@ class OneDrive extends Storage
 	/** @var Graph */
 	protected OneDriveService $service;
 
-	public function __construct(Graph $graph, $options = [], OneDriveOauth $auth = null)
+	public function __construct(Graph $graph, $options = [], ?OneDriveOauth $auth = null)
 	{
 		$this->service = new OneDriveService($graph, $options, $auth);
 		$this->setLogger($this->service->getLogger());
