@@ -25,7 +25,6 @@ class OneDrive extends Storage
 	{
 		$this->service = new OneDriveService($graph, $options, $auth);
 		$this->setLogger($this->service->getLogger());
-		$this->setupCache($options);
 	}
 
 	public function getService()
@@ -65,7 +64,6 @@ class OneDrive extends Storage
 	{
 		try {
 			$this->service->upload($path, $contents);
-			$this->cache->forgetBranch($path);
 			if ($config && $visibility = $config->get('visibility')) {
 				$this->setVisibility($path, $visibility);
 			}
@@ -91,7 +89,6 @@ class OneDrive extends Storage
 	{
 		try {
 			$this->service->delete($path);
-			$this->cache->delete($path);
 		} catch (ClientException $e) {
 			if ($e->getResponse()->getStatusCode() === 404) {
 				throw FileNotFoundException::create($path);
@@ -105,14 +102,12 @@ class OneDrive extends Storage
 	public function deleteDirectory(string $path): void
 	{
 		$this->delete($path);
-		$this->cache->deleteDir($path);
 	}
 
 	public function createDirectory(string $path, Config $config = null): void
 	{
 		try {
 			$response = $this->service->createDirectory($path);
-			$this->cache->forgetBranch($path);
 
 			$file = FileAttributes::fromArray($this->service->normalizeMetadata($response, $path));
 			if (!$file->isDir()) {
@@ -134,10 +129,8 @@ class OneDrive extends Storage
 	{
 		if ($visibility === Storage::VISIBILITY_PUBLIC) {
 			$this->service->publish($path);
-			$this->cache->forget($path);
 		} elseif ($visibility === Storage::VISIBILITY_PRIVATE) {
 			$this->service->unPublish($path);
-			$this->cache->forget($path);
 		} else {
 			throw new \InvalidArgumentException('Unknown visibility: ' . $visibility);
 		}
@@ -152,7 +145,6 @@ class OneDrive extends Storage
 	public function move(string $source, string $destination, Config $config = null): void
 	{
 		$this->service->move($source, $destination);
-		$this->cache->move($source, $destination);
 	}
 
 	/**
@@ -164,7 +156,6 @@ class OneDrive extends Storage
 	public function copy(string $source, string $destination, Config $config = null): void
 	{
 		$this->service->copy($source, $destination);
-		$this->cache->forgetBranch($destination);
 		$this->setVisibility($destination, $this->getMetadata($source)->visibility());
 	}
 
@@ -177,19 +168,11 @@ class OneDrive extends Storage
 	public function getMetadata($path): FileAttributes
 	{
 		try {
-			$meta = $this->cache->get($path);
-			if (!is_null($meta) && !$meta) {
-				throw new FileNotFoundException($path);
-			}
-			if (!isset($meta)) {
-				$meta = $this->service->getItem($path, ['expand' => 'permissions']);
-				$this->cache->put($path, $meta);
-			}
+			$meta = $this->service->getItem($path, ['expand' => 'permissions']);
 			$attributes = $this->service->normalizeMetadata($meta, $path);
 			return FileAttributes::fromArray($attributes);
 		} catch (ClientException $e) {
 			if ($e->getResponse()->getStatusCode() === 404) {
-				$this->cache->put($path, false);
 				throw new FileNotFoundException($path, 0, $e);
 			}
 			throw new StorageException($e->getMessage(), 'getMetadata', $e);
