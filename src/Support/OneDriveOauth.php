@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: alt
@@ -8,8 +9,6 @@
 
 namespace Dkvhin\Flysystem\OneDrive\Support;
 
-use Dkvhin\Flysystem\OneDrive\Cache\TempCache;
-use Dkvhin\Flysystem\OneDrive\Contracts\Cache\Store;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -19,12 +18,11 @@ class OneDriveOauth
 	protected $clientSecret;
 	protected $accessToken;
 	protected $refreshToken;
-	protected $tenantId='common';
+	protected $tenantId = 'common';
 	protected $httpClient;
 	/**
 	 * @var Store
 	 */
-	protected $cache;
 	protected $tokenEndpoint = 'https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token';
 	protected $oauthUrl = 'https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize';
 	protected $oauthParams = [
@@ -34,9 +32,8 @@ class OneDriveOauth
 		'scope' => 'files.readwrite.all offline_access',
 	];
 
-	public function __construct(Store $cache = null)
+	public function __construct()
 	{
-		$this->cache = $cache;
 	}
 
 	public function createAuthUrl()
@@ -70,7 +67,8 @@ class OneDriveOauth
 					'redirect_uri' => $this->getCurrentUrl(),
 					'code' => $code,
 				],
-			]);
+			]
+		);
 
 		return json_decode($response->getBody(), true);
 	}
@@ -84,14 +82,8 @@ class OneDriveOauth
 	 */
 	function getAccessToken($minLifetime = 600)
 	{
-		$key = $this->clientId . $this->clientSecret . $this->refreshToken;
-		$token = $this->getCache()->get($key);
-
-		if (!$token) {
-			$token = [];
-			$token['refresh_token'] = $this->refreshToken;
-		}
-
+		$token = [];
+		$token['refresh_token'] = $this->refreshToken;
 		$token_created_at = isset($token['created_at']) ? $token['created_at'] : 0;
 		$token_expired_in = isset($token['expires_in']) ? $token['expires_in'] : 0;
 		$willBeExpireIn = $token_expired_in + $token_created_at - time();
@@ -100,14 +92,8 @@ class OneDriveOauth
 			$token = $this->fetchAccessTokenWithRefreshToken($this->refreshToken);
 
 			$token['created_at'] = time();
-			if (!empty($token['access_token'])) {
-				$this->getCache()->put($key, $token, 0);
-			}
-
 		}
 		return $token['access_token'];
-
-
 	}
 
 	/**
@@ -128,7 +114,8 @@ class OneDriveOauth
 					'grant_type' => 'refresh_token',
 					'refresh_token' => $refresh_token,
 				],
-			]);
+			]
+		);
 
 		return json_decode($response->getBody(), true);
 	}
@@ -147,16 +134,6 @@ class OneDriveOauth
 		return $this->httpClient;
 	}
 
-	/**
-	 * @return TempCache|Store
-	 */
-	public function getCache()
-	{
-		if (!$this->cache) {
-			$this->cache = new TempCache(static::class);
-		}
-		return $this->cache;
-	}
 
 	/**
 	 * @param string $clientId
@@ -205,16 +182,6 @@ class OneDriveOauth
 	public function setHttpClient($httpClient)
 	{
 		$this->httpClient = $httpClient;
-		return $this;
-	}
-
-	/**
-	 * @param $cache
-	 * @return OneDriveOauth
-	 */
-	public function setCache(Store $cache): OneDriveOauth
-	{
-		$this->cache = $cache;
 		return $this;
 	}
 
@@ -313,5 +280,4 @@ class OneDriveOauth
 		$this->oauthParams = $oauthParams;
 		return $this;
 	}
-
 }
